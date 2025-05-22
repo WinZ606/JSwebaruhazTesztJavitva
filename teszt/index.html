@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webáruház Tesztek</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .test-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .test-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Webáruház Teszt Futtatás</h1>
+    
+    <div class="test-section">
+        <div class="test-title">Model Teszt</div>
+        <p>A Model osztály tesztje a kosár kezelésére vonatkozóan.</p>
+        <button class="test-btn" onclick="runTest('ModelTeszt.js')">Futtatás</button>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">Kosár Teszt</div>
+        <p>A Kosár osztály megjelenítésének tesztje.</p>
+        <button class="test-btn" onclick="runTest('KosarTeszt.js')">Futtatás</button>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">Controller Teszt</div>
+        <p>A Controller osztály tesztje az eseménykezelés és a modell frissítésének ellenőrzésére.</p>
+        <button class="test-btn" onclick="runTest('ControllerTeszt.js')">Futtatás</button>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-title">Összes Teszt Futtatása</div>
+        <p>Az összes teszt futtatása egyszerre.</p>
+        <button class="test-btn" onclick="runAllTests()">Összes Futtatása</button>
+    </div>
+    
+    <div id="testFrame" style="width:100%; margin-top: 20px;"></div>
+    
+    <script>
+        function runTest(testFile) {
+            const testFrame = document.getElementById('testFrame');
+            testFrame.innerHTML = `<h2>Teszt: ${testFile}</h2>`;
+            
+            const iframe = document.createElement('iframe');
+            iframe.style.width = '100%';
+            iframe.style.height = '300px';
+            iframe.style.border = '1px solid #ddd';
+            iframe.src = `about:blank`;
+            
+            testFrame.appendChild(iframe);
+            
+            // Write the test content to the iframe
+            setTimeout(() => {
+                const doc = iframe.contentDocument || iframe.contentWindow.document;
+                doc.open();
+                doc.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Teszt: ${testFile}</title>
+                        <style>
+                            body { font-family: monospace; padding: 10px; }
+                            .success { color: green; }
+                            .error { color: red; font-weight: bold; }
+                        </style>
+                    </head>
+                    <body>
+                        <h3>Teszt futás: ${testFile}</h3>
+                        <div id="output"></div>
+                        <script type="module" src="${testFile}"></script>
+                        <script>
+                            // Capture console.log and console.assert
+                            (function(){
+                                const originalLog = console.log;
+                                const originalAssert = console.assert;
+                                const output = document.getElementById('output');
+                                
+                                console.log = function() {
+                                    const args = Array.from(arguments);
+                                    const div = document.createElement('div');
+                                    div.textContent = args.join(' ');
+                                    if (args[0] === '✓') {
+                                        div.className = 'success';
+                                    }
+                                    output.appendChild(div);
+                                    originalLog.apply(console, arguments);
+                                };
+                                
+                                console.assert = function(assertion, ...args) {
+                                    if (!assertion) {
+                                        const div = document.createElement('div');
+                                        div.className = 'error';
+                                        div.textContent = 'Assertion failed: ' + args.join(' ');
+                                        output.appendChild(div);
+                                    }
+                                    originalAssert.apply(console, arguments);
+                                };
+                            })();
+                        </script>
+                    </body>
+                    </html>
+                `);
+                doc.close();
+            }, 100);
+        }
+        
+        function runAllTests() {
+            const testFiles = ['ModelTeszt.js', 'KosarTeszt.js', 'ControllerTeszt.js'];
+            const testFrame = document.getElementById('testFrame');
+            testFrame.innerHTML = '<h2>Összes Teszt</h2>';
+            
+            testFiles.forEach(file => {
+                const section = document.createElement('div');
+                section.style.marginBottom = '20px';
+                
+                const title = document.createElement('h3');
+                title.textContent = `Teszt: ${file}`;
+                
+                const iframe = document.createElement('iframe');
+                iframe.style.width = '100%';
+                iframe.style.height = '200px';
+                iframe.style.border = '1px solid #ddd';
+                iframe.src = `about:blank`;
+                
+                section.appendChild(title);
+                section.appendChild(iframe);
+                testFrame.appendChild(section);
+                
+                // Write the test content to the iframe
+                setTimeout(() => {
+                    const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    doc.open();
+                    doc.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Teszt: ${file}</title>
+                            <style>
+                                body { font-family: monospace; padding: 10px; }
+                                .success { color: green; }
+                                .error { color: red; font-weight: bold; }
+                            </style>
+                        </head>
+                        <body>
+                            <div id="output"></div>
+                            <script type="module" src="${file}"></script>
+                            <script>
+                                // Capture console.log and console.assert
+                                (function(){
+                                    const originalLog = console.log;
+                                    const originalAssert = console.assert;
+                                    const output = document.getElementById('output');
+                                    
+                                    console.log = function() {
+                                        const args = Array.from(arguments);
+                                        const div = document.createElement('div');
+                                        div.textContent = args.join(' ');
+                                        if (args[0] === '✓') {
+                                            div.className = 'success';
+                                        }
+                                        output.appendChild(div);
+                                        originalLog.apply(console, arguments);
+                                    };
+                                    
+                                    console.assert = function(assertion, ...args) {
+                                        if (!assertion) {
+                                            const div = document.createElement('div');
+                                            div.className = 'error';
+                                            div.textContent = 'Assertion failed: ' + args.join(' ');
+                                            output.appendChild(div);
+                                        }
+                                        originalAssert.apply(console, arguments);
+                                    };
+                                })();
+                            </script>
+                        </body>
+                        </html>
+                    `);
+                    doc.close();
+                }, 100);
+            });
+        }
+    </script>
+</body>
+</html> 
